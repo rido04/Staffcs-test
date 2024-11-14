@@ -104,7 +104,7 @@ function exportToExcel() {
 
   // Siapkan data untuk diekspor ke Excel
   const wsData = [
-    ["Rekap Data Pelayanan Hari ini"], // Judul
+    ["Rekap Data Pelayanan"], // Judul
     ["Pelayanan", "Jumlah"],  // Header
   ];
 
@@ -126,6 +126,25 @@ function exportToExcel() {
     { wpx: 250 }, // Lebar kolom pertama untuk "Pelayanan"
     { wpx: 100 }, // Lebar kolom kedua untuk "Jumlah"
   ];
+
+  // Menambahkan border pada setiap sel
+  const borderStyle = {
+    top: { style: 'thin' },
+    left: { style: 'thin' },
+    bottom: { style: 'thin' },
+    right: { style: 'thin' },
+  };
+
+  // Menambahkan border pada semua sel di worksheet
+  for (let row = 0; row < wsData.length; row++) {
+    for (let col = 0; col < wsData[row].length; col++) {
+      const cell = ws[XLSX.utils.encode_cell({ r: row, c: col })];
+      if (!cell) {
+        ws[XLSX.utils.encode_cell({ r: row, c: col })] = {}; // Buat sel kosong jika tidak ada
+      }
+      ws[XLSX.utils.encode_cell({ r: row, c: col })].s = { border: borderStyle }; // Tambahkan border
+    }
+  }
 
   // Tambahkan worksheet ke workbook
   XLSX.utils.book_append_sheet(wb, ws, "Rekap Data Pelayanan");
