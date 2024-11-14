@@ -20,7 +20,6 @@ document.getElementById("keluhanForm").addEventListener("submit", function (even
   this.reset();
 });
 
-// Function logic untuk filter data
 function filterData() {
   const startDate = new Date(document.getElementById("startDate").value);
   const endDate = new Date(document.getElementById("endDate").value);
@@ -40,10 +39,9 @@ function filterData() {
 
   rekapTable.innerHTML = generateTable(filteredData);
   updateTotalSummary(filteredData);
-  displayTotalRecords(filteredData.length);
+  displayTotalRecords(filteredData);
 }
 
-// Function tampilkan tabel
 function generateTable(data) {
   if (data.length === 0) return "<p>Tidak ada data dalam rentang waktu ini.</p>";
 
@@ -57,12 +55,14 @@ function generateTable(data) {
   return tableHTML;
 }
 
-// Function untuk menampilkan summary total
 function updateTotalSummary(data) {
   const summary = {};
+  let totalEntries = 0;
+
   data.forEach((entry) => {
     entry.keluhan.forEach((keluhan) => {
       summary[keluhan] = (summary[keluhan] || 0) + 1;
+      totalEntries++;
     });
   });
 
@@ -71,15 +71,15 @@ function updateTotalSummary(data) {
   for (const keluhan in summary) {
     summaryDiv.innerHTML += `<p>${keluhan}: ${summary[keluhan]}</p>`;
   }
+  summaryDiv.innerHTML += `<h4>Total Semua Entri: ${totalEntries}</h4>`; // Menampilkan total jumlah semua entri
 }
 
-// Function untuk menampilkan total keseluruhan data
-function displayTotalRecords(total) {
+function displayTotalRecords(data) {
   const totalDiv = document.getElementById("totalRecords");
+  const total = data.reduce((sum, entry) => sum + entry.keluhan.length, 0);
   totalDiv.innerHTML = `<h4>Total Keseluruhan Data: ${total}</h4>`;
 }
 
-// Function untuk ekspor ke Excel
 function exportToExcel() {
   confirm("Export ke Excel?");
 
@@ -88,6 +88,8 @@ function exportToExcel() {
 
   // Proses data untuk menghitung total per jenis pelayanan dan menghindari duplikasi
   const pelayananSummary = {};
+  let totalEntries = 0;
+
   storedData.forEach((entry) => {
     entry.keluhan.forEach((keluhan) => {
       if (pelayananSummary[keluhan]) {
@@ -95,6 +97,7 @@ function exportToExcel() {
       } else {
         pelayananSummary[keluhan] = 1;
       }
+      totalEntries++;
     });
   });
 
@@ -109,14 +112,14 @@ function exportToExcel() {
     wsData.push([keluhan, pelayananSummary[keluhan]]);
   }
 
-  // Tambahkan total jumlah pelayanan
-  wsData.push(["Total Keseluruhan Data", storedData.length]);
+  // Tambahkan total jumlah semua entri
+  wsData.push(["Total Semua Entri", totalEntries]);
 
   // Buat worksheet
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-  // Menambahkan worksheet ke workbook
+  // Tambahkan worksheet ke workbook
   XLSX.utils.book_append_sheet(wb, ws, "Rekap Data Pelayanan");
 
   // Ekspor ke file Excel
