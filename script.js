@@ -84,29 +84,52 @@ function updateTotalSummary(data) {
     summaryDiv.innerHTML += `<p>${keluhan}: ${summary[keluhan]}</p>`;
   }
 }
-// Function untuk mengekspor data ke Excel
 function exportToExcel() {
   const rekapTable = document.getElementById("rekapTable");
 
-  // Ambil isi tabel dari rekapTable
-  const tableHTML = rekapTable.innerHTML;
+  // Ambil data dari localStorage
+  const storedData = JSON.parse(localStorage.getItem("keluhanData")) || [];
 
-  // Jika tabel kosong, beri peringatan
-  if (!tableHTML || tableHTML.includes("Tidak ada data dalam rentang waktu ini.")) {
-    alert("Tidak ada data yang bisa diekspor.");
-    return;
+  // Proses data untuk menghitung total per jenis pelayanan dan menghindari duplikasi
+  const pelayananSummary = {};
+  storedData.forEach((entry) => {
+    entry.keluhan.forEach((keluhan) => {
+      if (pelayananSummary[keluhan]) {
+        pelayananSummary[keluhan]++;
+      } else {
+        pelayananSummary[keluhan] = 1;
+      }
+    });
+  });
+
+  // Siapkan data untuk diekspor ke Excel
+  const wsData = [
+    ["Rekap Data Pelayanan"], // Judul
+    ["Pelayanan", "Jumlah"],  // Header
+  ];
+
+  // Tambahkan data pelayanan yang sudah dihitung
+  for (const keluhan in pelayananSummary) {
+    wsData.push([keluhan, pelayananSummary[keluhan]]);
   }
 
-  // Menggunakan SheetJS untuk konversi tabel HTML ke format Excel
-  const wb = XLSX.utils.book_new();
-  
-  // Konversi tabel HTML menjadi worksheet
-  const ws = XLSX.utils.table_to_sheet(rekapTable);
-  
-  // Tambahkan worksheet ke dalam workbook
-  XLSX.utils.book_append_sheet(wb, ws, "Rekap Data");
+  // Tambahkan total jumlah pelayanan
+  const totalPelayanan = storedData.length;
+  wsData.push(["Total", totalPelayanan]);
 
-  // Ekspor file Excel dengan nama "rekap_data.xlsx"
+  // Buat worksheet
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  // Mengatur lebar kolom yang lebih sesuai
+  ws['!cols'] = [
+    { wpx: 250 }, // Lebar kolom pertama untuk "Pelayanan"
+    { wpx: 100 }, // Lebar kolom kedua untuk "Jumlah"
+  ];
+
+  // Tambahkan worksheet ke workbook
+  XLSX.utils.book_append_sheet(wb, ws, "Rekap Data Pelayanan");
+
+  // Ekspor ke file Excel
   XLSX.writeFile(wb, "rekap_data.xlsx");
 }
-
