@@ -1,31 +1,24 @@
-// Logic pengisian jenis pelayanan di chechbox
-document
-  .getElementById("keluhanForm")
-  .addEventListener("submit", function (event) {
-    event.preventDefault();
-    const checkboxes = document.querySelectorAll(
-      'input[name="keluhan"]:checked'
-    );
-    const keluhanList = Array.from(checkboxes).map(
-      (checkbox) => checkbox.value
-    );
+document.getElementById("keluhanForm").addEventListener("submit", function (event) {
+  event.preventDefault();
+  const checkboxes = document.querySelectorAll('input[name="keluhan"]:checked');
+  const keluhanList = Array.from(checkboxes).map((checkbox) => checkbox.value);
 
-    if (keluhanList.length === 0) {
-      alert("Pilih minimal satu jenis layanan.");
-      return;
-    }
+  if (keluhanList.length === 0) {
+    alert("Pilih minimal satu jenis layanan.");
+    return;
+  }
 
-    const keluhanData = {
-      keluhan: keluhanList,
-      timestamp: new Date().toISOString(),
-    };
+  const keluhanData = {
+    keluhan: keluhanList,
+    timestamp: new Date().toISOString(),
+  };
 
-    let storedData = JSON.parse(localStorage.getItem("keluhanData")) || [];
-    storedData.push(keluhanData);
-    localStorage.setItem("keluhanData", JSON.stringify(storedData));
-    alert("Data berhasil dikirim.");
-    this.reset();
-  });
+  let storedData = JSON.parse(localStorage.getItem("keluhanData")) || [];
+  storedData.push(keluhanData);
+  localStorage.setItem("keluhanData", JSON.stringify(storedData));
+  alert("Data berhasil dikirim.");
+  this.reset();
+});
 
 // Function logic untuk filter data
 function filterData() {
@@ -40,36 +33,31 @@ function filterData() {
     const dataDate = new Date(data.timestamp);
     const dataTime = dataDate.toTimeString().split(" ")[0].slice(0, 5);
     const isDateInRange = dataDate >= startDate && dataDate <= endDate;
-    const isTimeInRange =
-      (!startTime || dataTime >= startTime) &&
-      (!endTime || dataTime <= endTime);
+    const isTimeInRange = (!startTime || dataTime >= startTime) && (!endTime || dataTime <= endTime);
 
     return isDateInRange && isTimeInRange;
   });
 
   rekapTable.innerHTML = generateTable(filteredData);
   updateTotalSummary(filteredData);
+  displayTotalRecords(filteredData.length);
 }
+
 // Function tampilkan tabel
 function generateTable(data) {
-  if (data.length === 0)
-    return "<p>Tidak ada data dalam rentang waktu ini.</p>";
+  if (data.length === 0) return "<p>Tidak ada data dalam rentang waktu ini.</p>";
 
-  let tableHTML =
-    "<table><tr><th>Tanggal</th><th>Jam</th><th>Pelayanan</th></tr>";
+  let tableHTML = "<table><tr><th>Tanggal</th><th>Jam</th><th>Pelayanan</th></tr>";
   data.forEach((entry) => {
     entry.keluhan.forEach((keluhan) => {
-      tableHTML += `<tr><td>${new Date(
-        entry.timestamp
-      ).toLocaleDateString()}</td><td>${new Date(
-        entry.timestamp
-      ).toLocaleTimeString()}</td><td>${keluhan}</td></tr>`;
+      tableHTML += `<tr><td>${new Date(entry.timestamp).toLocaleDateString()}</td><td>${new Date(entry.timestamp).toLocaleTimeString()}</td><td>${keluhan}</td></tr>`;
     });
   });
   tableHTML += "</table>";
   return tableHTML;
 }
-// Function untuk total jumlah data
+
+// Function untuk menampilkan summary total
 function updateTotalSummary(data) {
   const summary = {};
   data.forEach((entry) => {
@@ -84,8 +72,15 @@ function updateTotalSummary(data) {
     summaryDiv.innerHTML += `<p>${keluhan}: ${summary[keluhan]}</p>`;
   }
 }
+
+// Function untuk menampilkan total keseluruhan data
+function displayTotalRecords(total) {
+  const totalDiv = document.getElementById("totalRecords");
+  totalDiv.innerHTML = `<h4>Total Keseluruhan Data: ${total}</h4>`;
+}
+
+// Function untuk ekspor ke Excel
 function exportToExcel() {
-  const rekapTable = document.getElementById("rekapTable");
   confirm("Export ke Excel?");
 
   // Ambil data dari localStorage
@@ -115,39 +110,13 @@ function exportToExcel() {
   }
 
   // Tambahkan total jumlah pelayanan
-  const totalPelayanan = storedData.length;
-  wsData.push(["Total", totalPelayanan]);
+  wsData.push(["Total Keseluruhan Data", storedData.length]);
 
   // Buat worksheet
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-  // Mengatur lebar kolom yang lebih sesuai
-  ws['!cols'] = [
-    { wpx: 250 }, // Lebar kolom pertama untuk "Pelayanan"
-    { wpx: 100 }, // Lebar kolom kedua untuk "Jumlah"
-  ];
-
-  // Menambahkan border pada setiap sel
-  const borderStyle = {
-    top: { style: 'thin' },
-    left: { style: 'thin' },
-    bottom: { style: 'thin' },
-    right: { style: 'thin' },
-  };
-
-  // Menambahkan border pada semua sel di worksheet
-  for (let row = 0; row < wsData.length; row++) {
-    for (let col = 0; col < wsData[row].length; col++) {
-      const cell = ws[XLSX.utils.encode_cell({ r: row, c: col })];
-      if (!cell) {
-        ws[XLSX.utils.encode_cell({ r: row, c: col })] = {}; // Buat sel kosong jika tidak ada
-      }
-      ws[XLSX.utils.encode_cell({ r: row, c: col })].s = { border: borderStyle }; // Tambahkan border
-    }
-  }
-
-  // Tambahkan worksheet ke workbook
+  // Menambahkan worksheet ke workbook
   XLSX.utils.book_append_sheet(wb, ws, "Rekap Data Pelayanan");
 
   // Ekspor ke file Excel
