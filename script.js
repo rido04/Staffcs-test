@@ -104,7 +104,7 @@ function exportToExcel() {
 
   // Siapkan data untuk diekspor ke Excel
   const wsData = [
-    ["Rekap Data Pelayanan"], // Judul
+    ["Rekap Data Pelayanan Hari ini"], // Judul
     ["Pelayanan", "Jumlah"],  // Header
   ];
 
