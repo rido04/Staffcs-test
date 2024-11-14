@@ -86,6 +86,7 @@ function updateTotalSummary(data) {
 }
 function exportToExcel() {
   const rekapTable = document.getElementById("rekapTable");
+  confirm("Export ke Excel?");
 
   // Ambil data dari localStorage
   const storedData = JSON.parse(localStorage.getItem("keluhanData")) || [];
