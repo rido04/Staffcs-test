@@ -84,3 +84,29 @@ function updateTotalSummary(data) {
     summaryDiv.innerHTML += `<p>${keluhan}: ${summary[keluhan]}</p>`;
   }
 }
+// Function untuk mengekspor data ke Excel
+function exportToExcel() {
+  const rekapTable = document.getElementById("rekapTable");
+
+  // Ambil isi tabel dari rekapTable
+  const tableHTML = rekapTable.innerHTML;
+
+  // Jika tabel kosong, beri peringatan
+  if (!tableHTML || tableHTML.includes("Tidak ada data dalam rentang waktu ini.")) {
+    alert("Tidak ada data yang bisa diekspor.");
+    return;
+  }
+
+  // Menggunakan SheetJS untuk konversi tabel HTML ke format Excel
+  const wb = XLSX.utils.book_new();
+  
+  // Konversi tabel HTML menjadi worksheet
+  const ws = XLSX.utils.table_to_sheet(rekapTable);
+  
+  // Tambahkan worksheet ke dalam workbook
+  XLSX.utils.book_append_sheet(wb, ws, "Rekap Data");
+
+  // Ekspor file Excel dengan nama "rekap_data.xlsx"
+  XLSX.writeFile(wb, "rekap_data.xlsx");
+}
+
