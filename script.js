@@ -113,7 +113,7 @@ function exportToExcel() {
   }
 
   // Tambahkan total jumlah semua entri
-  wsData.push(["Total Semua Entri", totalEntries]);
+  wsData.push(["Total Pleyanan Hari Ini", totalEntries]);
 
   // Buat worksheet
   const wb = XLSX.utils.book_new();
